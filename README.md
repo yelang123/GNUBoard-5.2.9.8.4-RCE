@@ -7,7 +7,7 @@
 $move_write_table = $g5['write_prefix'] . $move_bo_table;</code></pre>
 >위의 코드를 보면 별다른 검증없이 "$_POST['chk_bo_table'][$i]" 변수의 값을 "$move_write_table" 변수에 넣어주는것을 알 수 있습니다.
 <pre><code>sql_query(" update $move_write_table set wr_parent = '$save_parent' where wr_id = '$insert_id' ");</code></pre>
->그리고 위와 같이 sql_query함수를 이용하여 update 하는 SQL을 날려주는데 이때 테이블 clause에서 SQL Injection이 가능하고 update는 다른 테이블 참조 등이 가능합니다.
+>그리고 위와 같이 sql_query함수를 이용하여 update 하는 SQL을 날려주는데 이때 테이블 clause에서 SQL Injection이 가능하여 다른 테이블의 값을 조작할 수 있습니다.
 
 <pre><code>        $sql = " insert into {$g5['board_file_table']}
                     set bo_table = '{$bo_table}',
