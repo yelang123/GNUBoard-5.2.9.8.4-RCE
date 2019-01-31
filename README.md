@@ -3,5 +3,6 @@
 >
 ## 취약점 설명
 >그누보드 /bbs/move_update.php 29~30,164 라인
-<pre><code>29:$move_bo_table = $_POST['chk_bo_table'][$i];
-30:$move_write_table = $g5['write_prefix'] . $move_bo_table;</code></pre>
+<pre><code>$move_bo_table = $_POST['chk_bo_table'][$i];
+$move_write_table = $g5['write_prefix'] . $move_bo_table;</code></pre>
+<pre><code>sql_query(" update $move_write_table set wr_parent = '$save_parent' where wr_id = '$insert_id' ");</code></pre>
