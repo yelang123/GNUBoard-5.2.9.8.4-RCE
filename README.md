@@ -77,6 +77,6 @@ fwrite($f, "define('G5_TABLE_PREFIX', '{$table_prefix}');\n\n");</code></pre>
 > "dbconfig.php" 파일이 삭제되면 그누보드에선 install이 되지 않았다고 판단하여 위와 같은 install_db.php를 이용하여 다시 dbconfig.php 파일을 write해줍니다.
 > 이 때 위와 같이 php코드를 패스워드나 db같은 부분에 본인의 mysql 서버에 " ');include($_GET['foo']);// "와 같은 DB or PASSWORD를 셋팅해주고 외부접속을 허용하여 "mysql_connect" 함수가 정상적으로 접근할 수 있게 맞춰줍니다.
 
->이 후 dbconfig.php 파일은 모든 파일을 
+>이 후 dbconfig.php은 common.php에서 include하고 common.php는 거의 모든 파일에서 include하기 때문에 모든 파일에서 쉘을 실행할 수 있습니다.
 
 >그누보드에서는 각각의 게시판마다 g5_board 테이블에 있는 bo_include_head,bo_include_head 컬럼들의 값을 각각 상단 파일,하단 파일로 include합니다
