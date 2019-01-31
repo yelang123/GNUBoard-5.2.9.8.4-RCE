@@ -30,5 +30,8 @@ $move_write_table = $g5['write_prefix'] . $move_bo_table;</code></pre>
         // 에디터 썸네일 삭제
         delete_editor_thumbnail($row['wr_content']);</code></pre>
 
+>위는 당시와 비슷한 버전의 delete.php인데 "g5_board_file" 테이블의 "bf_file" 컬럼의 값을 select하여 unlink 하는것을 알 수 있습니다.
+>이 때 당시에는 "/data/dbconfig.php"를 삭제하여 다시 fwrite를 할 때 include 함수를 사용하여 LFI TO RCE를 했었습니다.
+
 
 >그누보드에서는 각각의 게시판마다 g5_board 테이블에 있는 bo_include_head,bo_include_head 컬럼들의 값을 각각 상단 파일,하단 파일로 include합니다
